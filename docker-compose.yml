@@ -1,0 +1,53 @@
+# Local development stack.
+#   pnpm db:up       -> only MySQL (run api/web with pnpm dev on your machine)
+#   pnpm docker:up   -> MySQL + api + web, all in containers
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-gymflow}
+      MYSQL_USER: ${MYSQL_USER:-gymflow}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?copy .env.example to .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?copy .env.example to .env}
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./infra/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-p${MYSQL_ROOT_PASSWORD}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      PORT: 3000
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-gymflow}
+      MYSQL_USER: ${MYSQL_USER:-gymflow}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+
+  web:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      - api
+    ports:
+      - '8080:80'
+
+volumes:
+  db-data:

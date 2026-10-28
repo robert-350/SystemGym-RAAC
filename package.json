@@ -1,0 +1,30 @@
+{
+  "name": "gymflow",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Gym management full-stack learning project (NestJS + React + MySQL)",
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @gymflow/api --filter @gymflow/web dev",
+    "dev:api": "pnpm --filter @gymflow/api start:dev",
+    "dev:web": "pnpm --filter @gymflow/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @gymflow/api test:e2e",
+    "format": "prettier --write \"apps/*/src/**/*.{ts,tsx}\" \"apps/api/test/**/*.ts\"",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d db",
+    "docker:up": "docker compose --profile app up --build"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}
